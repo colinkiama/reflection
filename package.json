@@ -1,0 +1,30 @@
+{
+  "name": "reflection",
+  "version": "0.0.1",
+  "description": "Phaser 3 game about reflection for MiniJam.",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/colinkiama/reflection.git"
+  },
+  "author": "Aivan Monceller",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/colinkiama/reflecction/issues"
+  },
+  "homepage": "https://github.com/colinkiama/reflection#readme",
+  "devDependencies": {
+    "@rollup/plugin-alias": "^3.1.9",
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-replace": "^4.0.0",
+    "@types/node": "^17.0.31",
+    "phaser": "^3.55.2",
+    "typescript": "^4.6.4",
+    "vite": "^2.9.13"
+  }
+}
