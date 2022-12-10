@@ -9,6 +9,7 @@ export default class Demo extends Phaser.Scene {
   private _player!: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody;
   private _text1!: Phaser.GameObjects.Text;
   private _text2!: Phaser.GameObjects.Text;
+  private _mirrorLineCanvas!: Phaser.GameObjects.Graphics;
   constructor() {
     super("GameScene");
   }
@@ -29,9 +30,20 @@ export default class Demo extends Phaser.Scene {
 
     this.input.mouse.disableContextMenu();
 
+    this._mirrorLineCanvas = this.add.graphics();
+
+    this._mirrorLineCanvas.lineStyle(2, 0x00ff00);
+
+    //  The graphics instance you draw on
+
+    let graphics = this.add.graphics();
+
+    let line = new Phaser.Geom.Line();
+
     this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (pointer.leftButtonReleased()) {
         this._text2.setText("Left Button was released");
+        graphics.clear();
       } else if (pointer.rightButtonReleased()) {
         this._text2.setText("Right Button was released");
       } else if (pointer.middleButtonReleased()) {
@@ -41,6 +53,40 @@ export default class Demo extends Phaser.Scene {
       } else if (pointer.forwardButtonReleased()) {
         this._text2.setText("Forward Button was released");
       }
+    });
+
+    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+      if (!pointer.isDown) {
+        return;
+      }
+
+      if (!pointer.leftButtonDown()) {
+        return;
+      }
+
+      line.setTo(pointer.x, pointer.y, pointer.x, pointer.y);
+    });
+
+    this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+      if (!pointer.isDown) {
+        graphics.clear();
+        return;
+      }
+
+      if (!pointer.leftButtonDown()) {
+        graphics.clear();
+        return;
+      }
+
+      console.log("Left button down");
+      line.x2 = pointer.x;
+      line.y2 = pointer.y;
+
+      graphics.clear();
+
+      graphics.lineStyle(2, 0x00ff00);
+
+      graphics.strokeLineShape(line);
     });
   }
 
