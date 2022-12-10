@@ -7,6 +7,8 @@ type KeyMap = {
 export default class Demo extends Phaser.Scene {
   private _movementKeys!: KeyMap;
   private _player!: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody;
+  private _text1!: Phaser.GameObjects.Text;
+  private _text2!: Phaser.GameObjects.Text;
   constructor() {
     super("GameScene");
   }
@@ -19,10 +21,39 @@ export default class Demo extends Phaser.Scene {
     this._player = this.physics.add.image(400, 300, "player");
     this._player.body.setCollideWorldBounds(true);
     this._movementKeys = <KeyMap>this.input.keyboard.addKeys("W, S, A, D");
+
+    this.input.mouse.disableContextMenu();
+
+    this._text1 = this.add.text(10, 10, "", { color: "#00ff00" });
+    this._text2 = this.add.text(500, 10, "", { color: "#00ff00" });
+
+    this.input.mouse.disableContextMenu();
+
+    this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+      if (pointer.leftButtonReleased()) {
+        this._text2.setText("Left Button was released");
+      } else if (pointer.rightButtonReleased()) {
+        this._text2.setText("Right Button was released");
+      } else if (pointer.middleButtonReleased()) {
+        this._text2.setText("Middle Button was released");
+      } else if (pointer.backButtonReleased()) {
+        this._text2.setText("Back Button was released");
+      } else if (pointer.forwardButtonReleased()) {
+        this._text2.setText("Forward Button was released");
+      }
+    });
   }
 
   update() {
     this.handleMovementKeys();
+
+    let pointer = this.input.activePointer;
+
+    this._text1.setText([
+      "x: " + pointer.worldX,
+      "y: " + pointer.worldY,
+      "isDown: " + pointer.isDown,
+    ]);
   }
   handleMovementKeys() {
     const PLAYER_VELOCITY = 150;
