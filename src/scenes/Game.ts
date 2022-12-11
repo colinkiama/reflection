@@ -17,7 +17,6 @@ type Point = {
 };
 
 export default class Demo extends Phaser.Scene {
-  private _movementKeys!: KeyMap;
   private _player!: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody;
   private _mirrorLineCanvas!: Phaser.GameObjects.Graphics;
   private _nextPlayerPosition!: Phaser.Math.Vector2;
@@ -35,7 +34,6 @@ export default class Demo extends Phaser.Scene {
     this._player = this.physics.add.image(400, 300, "player");
     this._player.body.setCollideWorldBounds(true);
     this._isNewReflectionAvailable = false;
-    this._movementKeys = <KeyMap>this.input.keyboard.addKeys("W, S, A, D");
 
     this.input.mouse.disableContextMenu();
 
@@ -129,10 +127,6 @@ export default class Demo extends Phaser.Scene {
   }
 
   update() {
-    this.handleMovementKeys();
-
-    let pointer = this.input.activePointer;
-
     if (!this._isNewReflectionAvailable) {
       return;
     }
@@ -140,36 +134,14 @@ export default class Demo extends Phaser.Scene {
     this._player.body.x = this._nextPlayerPosition.x;
     this._player.body.y = this._nextPlayerPosition.y;
   }
-
-  handleMovementKeys() {
-    const PLAYER_VELOCITY = 150;
-
-    // Handle horizontal and vertical axis seperately
-    // to easily allow for diagonal movement.
-    if (this._movementKeys.W.isDown) {
-      this._player.body.setVelocityY(-PLAYER_VELOCITY);
-      // this.logCurrentplayerPosition();
-    } else if (this._movementKeys.S.isDown) {
-      this._player.body.setVelocityY(PLAYER_VELOCITY);
-      // this.logCurrentplayerPosition();
-    } else {
-      this._player.body.setVelocityY(0);
-    }
-
-    if (this._movementKeys.A.isDown) {
-      this._player.body.setVelocityX(-PLAYER_VELOCITY);
-    } else if (this._movementKeys.D.isDown) {
-      this._player.body.setVelocityX(PLAYER_VELOCITY);
-    } else {
-      this._player.body.setVelocityX(0);
-    }
-  }
 }
+
 function calculateLineGradient(point1: Point, point2: Point) {
   return point2.x - point1.x === 0
     ? NaN
     : (point2.y - point1.y) / (point2.x - point1.x);
 }
+
 function findLineProps(line: Phaser.Geom.Line): LineProps {
   let lineGradient = calculateLineGradient(
     { x: line.x1, y: line.y1 },
