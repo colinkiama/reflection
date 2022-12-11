@@ -38,7 +38,7 @@ export default class Demo extends Phaser.Scene {
       if (pointer.leftButtonReleased()) {
         this.reflectPlayer(
           line,
-          new Phaser.Math.Vector2(this._player.body.x, this._player.body.y)
+          new Phaser.Math.Vector2(this._player.body.position)
         );
 
         graphics.clear();
@@ -83,36 +83,11 @@ export default class Demo extends Phaser.Scene {
     line: Phaser.Geom.Line,
     playerStartPosition: Phaser.Math.Vector2
   ) {
-    // Get mirror line: y = mx + b
-    let mirrorLineProps = MathHelper.findLineProps(line);
-
-    let lineIntersectPoint = MathHelper.calculateLineIntersectPoint(
-      mirrorLineProps,
+    this._isNewReflectionAvailable = true;
+    this._nextPlayerPosition = MathHelper.reflectPointOverLine(
+      line,
       playerStartPosition
     );
-
-    // To get the reflection point, create a vector from the the player position
-    // to the intersect point then, add this vector to the player position 2 times.
-    //
-    /// The final result will be the reflected player position.
-    let playerPositionVector = new Phaser.Math.Vector2(
-      playerStartPosition.x,
-      playerStartPosition.y
-    );
-
-    let intersectPointVector = new Phaser.Math.Vector2(
-      lineIntersectPoint.x,
-      lineIntersectPoint.y
-    );
-    let shortestPlayerToMirrorLineVector =
-      intersectPointVector.subtract(playerPositionVector);
-
-    let reflectionPointVector = playerPositionVector.add(
-      shortestPlayerToMirrorLineVector.scale(2)
-    );
-
-    this._isNewReflectionAvailable = true;
-    this._nextPlayerPosition = new Phaser.Math.Vector2(reflectionPointVector);
   }
 
   update() {

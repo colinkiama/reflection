@@ -2,6 +2,34 @@ import Phaser from "phaser";
 import { LineProps } from "../types";
 
 export default class MathHelper {
+  static reflectPointOverLine(
+    line: Phaser.Geom.Line,
+    startingPoint: Phaser.Math.Vector2
+  ): Phaser.Math.Vector2 {
+    // Get mirror line: y = mx + b
+    let mirrorLineProps = MathHelper.findLineProps(line);
+
+    let lineIntersectPoint = MathHelper.calculateLineIntersectPoint(
+      mirrorLineProps,
+      startingPoint
+    );
+
+    // To get the reflection point, create a vector from the the starting position
+    // to the intersect point then, add this vector to the starting position 2 times.
+    //
+    /// The final result will be the reflected poihnt.
+
+    let shortestPlayerToMirrorLineVector = new Phaser.Math.Vector2(
+      lineIntersectPoint
+    ).subtract(startingPoint);
+
+    let reflectionPointVector = new Phaser.Math.Vector2(startingPoint).add(
+      new Phaser.Math.Vector2(shortestPlayerToMirrorLineVector).scale(2)
+    );
+
+    return reflectionPointVector;
+  }
+
   static calculateLineGradient(
     point1: Phaser.Math.Vector2,
     point2: Phaser.Math.Vector2
