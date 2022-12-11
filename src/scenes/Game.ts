@@ -1,20 +1,5 @@
-import { Vector, VectorFactory } from "matter";
 import Phaser from "phaser";
-
-type KeyMap = {
-  [key: string]: Phaser.Input.Keyboard.Key;
-};
-
-type LineProps = {
-  gradient: number;
-  yIntercept: number;
-  xConstant: number;
-};
-
-type Point = {
-  x: number;
-  y: number;
-};
+import MathHelper from "../Helpers/MathHelper";
 
 export default class Demo extends Phaser.Scene {
   private _player!: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody;
@@ -51,10 +36,10 @@ export default class Demo extends Phaser.Scene {
 
     this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (pointer.leftButtonReleased()) {
-        this.reflectPlayer(line, {
-          x: this._player.body.x,
-          y: this._player.body.y,
-        });
+        this.reflectPlayer(
+          line,
+          new Phaser.Math.Vector2(this._player.body.x, this._player.body.y)
+        );
 
         graphics.clear();
       }
@@ -94,11 +79,14 @@ export default class Demo extends Phaser.Scene {
     });
   }
 
-  reflectPlayer(line: Phaser.Geom.Line, playerStartPosition: Point) {
+  reflectPlayer(
+    line: Phaser.Geom.Line,
+    playerStartPosition: Phaser.Math.Vector2
+  ) {
     // Get mirror line: y = mx + b
-    let mirrorLineProps = findLineProps(line);
+    let mirrorLineProps = MathHelper.findLineProps(line);
 
-    let lineIntersectPoint = calculateLineIntersectPoint(
+    let lineIntersectPoint = MathHelper.calculateLineIntersectPoint(
       mirrorLineProps,
       playerStartPosition
     );
@@ -111,6 +99,7 @@ export default class Demo extends Phaser.Scene {
       playerStartPosition.x,
       playerStartPosition.y
     );
+
     let intersectPointVector = new Phaser.Math.Vector2(
       lineIntersectPoint.x,
       lineIntersectPoint.y
@@ -134,111 +123,4 @@ export default class Demo extends Phaser.Scene {
     this._player.body.x = this._nextPlayerPosition.x;
     this._player.body.y = this._nextPlayerPosition.y;
   }
-}
-
-function calculateLineGradient(point1: Point, point2: Point) {
-  return point2.x - point1.x === 0
-    ? NaN
-    : (point2.y - point1.y) / (point2.x - point1.x);
-}
-
-function findLineProps(line: Phaser.Geom.Line): LineProps {
-  let lineGradient = calculateLineGradient(
-    { x: line.x1, y: line.y1 },
-    { x: line.x2, y: line.y2 }
-  );
-
-  let yIntercept = calculateYIntercept(lineGradient, {
-    x: line.x1,
-    y: line.y1,
-  });
-
-  return {
-    gradient: lineGradient,
-    yIntercept: yIntercept,
-    xConstant: Number.isNaN(lineGradient) ? line.x1 : NaN,
-  };
-}
-
-function calculateYIntercept(lineGradient: number, pointOnLine: Point) {
-  // Line: y = mx + b
-  // b = y-mx
-  if (Number.isNaN(lineGradient)) {
-    return NaN;
-  }
-
-  if (lineGradient === 0) {
-    // y is constant so y = pointOnline.y
-    return pointOnLine.y;
-  }
-
-  return pointOnLine.y - lineGradient * pointOnLine.x;
-}
-
-function findPerpendicularLineProps(
-  orginalLineProps: LineProps,
-  pointOnPerpendicularLine: Point
-): LineProps {
-  // Gradient of perpendicular line is negative reciporical of original line gradient:
-  // p = -(1/m)
-  // Therefore the perpendicular line, the line equation is: y = px + c
-
-  let lineGradient = -1 * Math.pow(orginalLineProps.gradient, -1);
-
-  // c = y - px;
-  let yIntercept =
-    pointOnPerpendicularLine.y - lineGradient * pointOnPerpendicularLine.x;
-
-  return {
-    gradient: lineGradient,
-    yIntercept: yIntercept,
-    xConstant: NaN, // If method is used, this field will be unused
-  };
-}
-
-function findLineIntersectPoint(line1: LineProps, line2: LineProps): Point {
-  // Equate y = mx + b to y = px + c
-  // x = (c - b) / (m - p)
-  let x =
-    (line2.yIntercept - line1.yIntercept) / (line1.gradient - line2.gradient);
-
-  // To get y, substitute x into one of the line equations.
-  let y = line1.gradient * x + line1.yIntercept;
-  return {
-    x: x,
-    y: y,
-  };
-}
-
-function calculateLineIntersectPoint(
-  mirrorLineProps: LineProps,
-  playerStartPosition: Point
-): Point {
-  // Edge case: Undefined mirror line gradient -> mirror line x value is constant
-  if (Number.isNaN(mirrorLineProps.gradient)) {
-    return {
-      x: mirrorLineProps.xConstant,
-      y: playerStartPosition.y,
-    };
-  }
-
-  // Edge case: line gradient = 0 -> mirror line y value is constant
-  if (mirrorLineProps.gradient === 0) {
-    return {
-      x: playerStartPosition.x,
-      y: mirrorLineProps.yIntercept,
-    };
-  }
-
-  // Now proceed to regular method of using vectors to find reflected point
-  // Line perpendcular to mirror line is y = -(1/m)x + b. Get the value of
-  // b by substitiuting x and y with the player's position. b = y+(1/m)x
-
-  let perpendicularLineProps = findPerpendicularLineProps(
-    mirrorLineProps,
-    playerStartPosition
-  );
-
-  // Equate the the two lines and get the point where they intercept
-  return findLineIntersectPoint(mirrorLineProps, perpendicularLineProps);
 }
