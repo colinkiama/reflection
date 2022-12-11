@@ -85,7 +85,6 @@ export default class Demo extends Phaser.Scene {
         return;
       }
 
-      console.log("Left button down");
       line.x2 = pointer.x;
       line.y2 = pointer.y;
 
@@ -100,7 +99,6 @@ export default class Demo extends Phaser.Scene {
   reflectPlayer(line: Phaser.Geom.Line, playerStartPosition: Point) {
     // Get mirror line: y = mx + b
     let mirrorLineProps = findLineProps(line);
-    console.log("Mirror line props:", mirrorLineProps);
 
     let lineIntersectPoint = calculateLineIntersectPoint(
       mirrorLineProps,
@@ -125,6 +123,7 @@ export default class Demo extends Phaser.Scene {
     let reflectionPointVector = playerPositionVector.add(
       shortestPlayerToMirrorLineVector.scale(2)
     );
+
     this._isNewReflectionAvailable = true;
     this._nextPlayerPosition = new Phaser.Math.Vector2(reflectionPointVector);
   }
@@ -140,9 +139,8 @@ export default class Demo extends Phaser.Scene {
 
     this._player.body.x = this._nextPlayerPosition.x;
     this._player.body.y = this._nextPlayerPosition.y;
-
-    // console.log()
   }
+
   handleMovementKeys() {
     const PLAYER_VELOCITY = 150;
 
@@ -160,23 +158,11 @@ export default class Demo extends Phaser.Scene {
 
     if (this._movementKeys.A.isDown) {
       this._player.body.setVelocityX(-PLAYER_VELOCITY);
-      // this.logCurrentplayerPosition();
     } else if (this._movementKeys.D.isDown) {
       this._player.body.setVelocityX(PLAYER_VELOCITY);
-      // this.logCurrentplayerPosition();
     } else {
       this._player.body.setVelocityX(0);
-      // this.logCurrentplayerPosition();
     }
-  }
-
-  logCurrentplayerPosition() {
-    console.log(
-      "Current player position:",
-      this._player.body.x,
-      ",",
-      this._player.body.y
-    );
   }
 }
 function calculateLineGradient(point1: Point, point2: Point) {
@@ -185,8 +171,6 @@ function calculateLineGradient(point1: Point, point2: Point) {
     : (point2.y - point1.y) / (point2.x - point1.x);
 }
 function findLineProps(line: Phaser.Geom.Line): LineProps {
-  console.log("Line:", line);
-
   let lineGradient = calculateLineGradient(
     { x: line.x1, y: line.y1 },
     { x: line.x2, y: line.y2 }
