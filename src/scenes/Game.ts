@@ -1,4 +1,3 @@
-import { Vector } from "matter";
 import Phaser from "phaser";
 import MathHelper from "../Helpers/MathHelper";
 import LineCanvas from "../Model/LineCanvas";
