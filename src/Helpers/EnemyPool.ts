@@ -15,6 +15,7 @@ export default class EnemyPool {
   private _enemies: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody[];
   private _player: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody;
   private _scene: Phaser.Scene;
+  private gameOverText!: Phaser.GameObjects.Text;
 
   private static hasEnemyCollidedWithPlayer: boolean = false;
 
@@ -25,6 +26,14 @@ export default class EnemyPool {
     this._enemies = [];
     this._player = player;
     this._scene = scene;
+
+    this.gameOverText = scene.add
+      .text(400 - 40, 300 - 10, "Game Over", {
+        color: "#000000",
+      })
+      .setDepth(2);
+
+    this.gameOverText.visible = false;
   }
 
   private static pickScreenEdge() {
@@ -134,6 +143,7 @@ export default class EnemyPool {
     this._player.body.velocity.y = 0;
 
     EnemyPool.hasEnemyCollidedWithPlayer = true;
+    this.gameOverText.visible = true;
   }
   cleanUp() {
     let enemiesCleared = 0;
