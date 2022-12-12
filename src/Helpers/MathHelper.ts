@@ -17,8 +17,7 @@ export default class MathHelper {
     // To get the reflection point, create a vector from the the starting position
     // to the intersect point then, add this vector to the starting position 2 times.
     //
-    /// The final result will be the reflected poihnt.
-
+    /// The final result will be the reflected point.
     let shortestPlayerToMirrorLineVector = new Phaser.Math.Vector2(
       lineIntersectPoint
     ).subtract(startingPoint);
@@ -41,13 +40,13 @@ export default class MathHelper {
 
   static findLineProps(line: Phaser.Geom.Line): LineProps {
     let lineGradient = MathHelper.calculateLineGradient(
-      new Phaser.Math.Vector2(line.x1, line.y1),
-      new Phaser.Math.Vector2(line.x2, line.y2)
+      new Phaser.Math.Vector2(line.getPointA()),
+      new Phaser.Math.Vector2(line.getPointB())
     );
 
     let yIntercept = MathHelper.calculateYIntercept(
       lineGradient,
-      new Phaser.Math.Vector2(line.x1, line.y1)
+      new Phaser.Math.Vector2(line.getPointA())
     );
 
     return {
@@ -114,7 +113,7 @@ export default class MathHelper {
     mirrorLineProps: LineProps,
     playerStartPosition: Phaser.Math.Vector2
   ): Phaser.Math.Vector2 {
-    // Edge case: Undefined mirror line gradient -> mirror line x value is constant
+    // Edge case: Undefined mirror line gradient. Mirror line x value is constant
     if (Number.isNaN(mirrorLineProps.gradient)) {
       return new Phaser.Math.Vector2(
         mirrorLineProps.xConstant,
@@ -122,7 +121,7 @@ export default class MathHelper {
       );
     }
 
-    // Edge case: line gradient = 0 -> mirror line y value is constant
+    // Edge case: line gradient = 0. Mirror line y value is constant
     if (mirrorLineProps.gradient === 0) {
       return new Phaser.Math.Vector2(
         playerStartPosition.x,
@@ -131,9 +130,10 @@ export default class MathHelper {
     }
 
     // Now proceed to regular method of using vectors to find reflected point
-    // Line perpendcular to mirror line is y = -(1/m)x + b. Get the value of
-    // b by substitiuting x and y with the player's position. b = y+(1/m)x
-
+    // Line perpendcular to mirror line is y = -(1/m)x + b.
+    //
+    // Get the value of b by substitiuting x and y with the player's position.
+    // b = y+(1/m)x
     let perpendicularLineProps = MathHelper.findPerpendicularLineProps(
       mirrorLineProps,
       playerStartPosition
