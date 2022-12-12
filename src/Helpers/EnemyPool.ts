@@ -92,6 +92,10 @@ export default class EnemyPool {
   }
 
   fire(lastPlayerPosition: Phaser.Math.Vector2) {
+    if (this._enemies.length > 10) {
+      this.cleanUp();
+    }
+
     let screenEdge = EnemyPool.pickScreenEdge();
     let startingPosition = EnemyPool.pickStartingPosition(
       screenEdge,
@@ -110,5 +114,19 @@ export default class EnemyPool {
     newEnemy.body.velocity = flightDirection.scale(
       Math.pow(flightDirection.length(), -1) * EnemyPool.pickSpeed()
     );
+
+    this._enemies.push(newEnemy);
+  }
+  cleanUp() {
+    let enemiesCleared = 0;
+    for (let i = this._enemies.length - 1; i >= 0; i--) {
+      let enemy = this._enemies.shift();
+      enemy?.destroy();
+      enemiesCleared++;
+
+      if (this._enemies.length === 5) {
+        break;
+      }
+    }
   }
 }

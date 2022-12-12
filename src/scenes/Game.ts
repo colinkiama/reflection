@@ -27,7 +27,6 @@ export default class Demo extends Phaser.Scene {
 
     this._enemyPool = new EnemyPool(this, this._player);
     this._enemyPool.start();
-    let enemy = this.physics.add.image(500, 500, "enemy");
 
     this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (pointer.leftButtonReleased()) {
