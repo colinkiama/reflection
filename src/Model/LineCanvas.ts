@@ -13,11 +13,29 @@ export default class LineCanvas {
   }
 
   startDrawing(startingPoint: Phaser.Math.Vector2) {
-    this._line.setTo;
+    this._line.setTo(
+      startingPoint.x,
+      startingPoint.y,
+      startingPoint.x,
+      startingPoint.y
+    );
+  }
+
+  drawTo(endPoint: Phaser.Math.Vector2) {
+    this._line.x2 = endPoint.x;
+    this._line.y2 = endPoint.y;
+
+    this.clear();
+    this._canvas.lineStyle(LINE_WIDTH, LINE_COLOR);
+    this._canvas.strokeLineShape(this._line);
   }
 
   getDrawing() {
     return this._line;
+  }
+
+  lineWasDrawn() {
+    return !this._line.getPointA().equals(this._line.getPointB());
   }
 
   clear() {

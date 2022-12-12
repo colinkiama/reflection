@@ -1,9 +1,11 @@
+import { Vector } from "matter";
 import Phaser from "phaser";
 import MathHelper from "../Helpers/MathHelper";
+import LineCanvas from "../Model/LineCanvas";
 
 export default class Demo extends Phaser.Scene {
   private _player!: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody;
-  private _mirrorLineCanvas!: Phaser.GameObjects.Graphics;
+  private _mirrorLineCanvas!: LineCanvas;
   private _nextPlayerPosition!: Phaser.Math.Vector2;
   private _isNewReflectionAvailable!: boolean;
 
@@ -19,33 +21,22 @@ export default class Demo extends Phaser.Scene {
     this._player = this.physics.add.image(400, 300, "player");
     this._player.body.setCollideWorldBounds(true);
     this._isNewReflectionAvailable = false;
-
     this.input.mouse.disableContextMenu();
-
-    this.input.mouse.disableContextMenu();
-
-    this._mirrorLineCanvas = this.add.graphics();
-    this._mirrorLineCanvas.lineStyle(2, 0x00ff00);
-
-    //  The graphics instance you draw on
-
-    let graphics = this.add.graphics();
-
-    let line = new Phaser.Geom.Line();
+    this._mirrorLineCanvas = new LineCanvas(this);
 
     this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (pointer.leftButtonReleased()) {
-        if (line.getPointA().equals(line.getPointB())) {
-          graphics.clear();
+        if (!this._mirrorLineCanvas.lineWasDrawn()) {
+          this._mirrorLineCanvas.clear();
           return;
         }
 
         this.reflectPlayer(
-          line,
+          this._mirrorLineCanvas.getDrawing(),
           new Phaser.Math.Vector2(this._player.body.position)
         );
 
-        graphics.clear();
+        this._mirrorLineCanvas.clear();
       }
     });
 
@@ -58,28 +49,26 @@ export default class Demo extends Phaser.Scene {
         return;
       }
 
-      line.setTo(pointer.x, pointer.y, pointer.x, pointer.y);
+      this._mirrorLineCanvas.startDrawing(
+        new Phaser.Math.Vector2(pointer.x, pointer.y)
+      );
     });
 
     this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
       if (!pointer.isDown) {
-        graphics.clear();
         return;
       }
 
-      if (!pointer.leftButtonDown()) {
-        graphics.clear();
+      // Ensures that primary button is held down
+      // and is the most recently preseed button
+      // before continuing.
+      if (!pointer.primaryDown && pointer.button !== 0) {
         return;
       }
 
-      line.x2 = pointer.x;
-      line.y2 = pointer.y;
-
-      graphics.clear();
-
-      graphics.lineStyle(2, 0x00ff00);
-
-      graphics.strokeLineShape(line);
+      this._mirrorLineCanvas.drawTo(
+        new Phaser.Math.Vector2(pointer.x, pointer.y)
+      );
     });
   }
 
