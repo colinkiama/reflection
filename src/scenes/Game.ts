@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import EnemyPool from "../Helpers/EnemyPool";
 import MathHelper from "../Helpers/MathHelper";
 import LineCanvas from "../Model/LineCanvas";
 
@@ -7,6 +8,7 @@ export default class Demo extends Phaser.Scene {
   private _mirrorLineCanvas!: LineCanvas;
   private _nextPlayerPosition!: Phaser.Math.Vector2;
   private _isNewReflectionAvailable!: boolean;
+  private _enemyPool!: EnemyPool;
 
   constructor() {
     super("GameScene");
@@ -23,6 +25,8 @@ export default class Demo extends Phaser.Scene {
     this.input.mouse.disableContextMenu();
     this._mirrorLineCanvas = new LineCanvas(this);
 
+    this._enemyPool = new EnemyPool(this, this._player);
+    this._enemyPool.start();
     let enemy = this.physics.add.image(500, 500, "enemy");
 
     this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
