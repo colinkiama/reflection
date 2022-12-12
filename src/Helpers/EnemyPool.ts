@@ -16,6 +16,8 @@ export default class EnemyPool {
   private _player: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody;
   private _scene: Phaser.Scene;
 
+  private static hasEnemyCollidedWithPlayer: boolean = false;
+
   constructor(
     scene: Phaser.Scene,
     player: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody
@@ -86,6 +88,10 @@ export default class EnemyPool {
 
   start() {
     setTimeout(() => {
+      if (EnemyPool.hasEnemyCollidedWithPlayer) {
+        return;
+      }
+
       this.fire(this._player.body.position);
       this.start();
     }, EnemyPool.pickEnemySpawnInterval());
@@ -111,11 +117,23 @@ export default class EnemyPool {
       "enemy"
     );
 
+    newEnemy.body.setImmovable(true);
+
+    this._scene.physics.add.collider(newEnemy, this._player, (enemy, player) =>
+      this.enemyHitPlayer()
+    );
+
     newEnemy.body.velocity = flightDirection.scale(
       Math.pow(flightDirection.length(), -1) * EnemyPool.pickSpeed()
     );
 
     this._enemies.push(newEnemy);
+  }
+  enemyHitPlayer(): void {
+    this._player.body.velocity.x = 0;
+    this._player.body.velocity.y = 0;
+
+    EnemyPool.hasEnemyCollidedWithPlayer = true;
   }
   cleanUp() {
     let enemiesCleared = 0;
