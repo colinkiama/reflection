@@ -2,24 +2,42 @@ import Phaser from "phaser";
 import { LineProps } from "../types";
 
 export default class MathHelper {
-  static calculateLineGradient(
-    point1: Phaser.Math.Vector2,
-    point2: Phaser.Math.Vector2
-  ) {
-    return point2.x - point1.x === 0
-      ? NaN
-      : (point2.y - point1.y) / (point2.x - point1.x);
+  static reflectPointOverLine(
+    line: Phaser.Geom.Line,
+    startingPoint: Phaser.Math.Vector2
+  ): Phaser.Math.Vector2 {
+    // Get mirror line: y = mx + b
+    let mirrorLineProps = MathHelper.findLineProps(line);
+
+    let lineIntersectPoint = MathHelper.calculateLineIntersectPoint(
+      mirrorLineProps,
+      startingPoint
+    );
+
+    // To get the reflection point, create a vector from the the starting position
+    // to the intersect point then, add this vector to the starting position 2 times.
+    //
+    /// The final result will be the reflected point.
+    let shortestPlayerToMirrorLineVector = new Phaser.Math.Vector2(
+      lineIntersectPoint
+    ).subtract(startingPoint);
+
+    let reflectionPointVector = new Phaser.Math.Vector2(startingPoint).add(
+      new Phaser.Math.Vector2(shortestPlayerToMirrorLineVector).scale(2)
+    );
+
+    return reflectionPointVector;
   }
 
   static findLineProps(line: Phaser.Geom.Line): LineProps {
     let lineGradient = MathHelper.calculateLineGradient(
-      new Phaser.Math.Vector2(line.x1, line.y1),
-      new Phaser.Math.Vector2(line.x2, line.y2)
+      new Phaser.Math.Vector2(line.getPointA()),
+      new Phaser.Math.Vector2(line.getPointB())
     );
 
     let yIntercept = MathHelper.calculateYIntercept(
       lineGradient,
-      new Phaser.Math.Vector2(line.x1, line.y1)
+      new Phaser.Math.Vector2(line.getPointA())
     );
 
     return {
@@ -27,6 +45,52 @@ export default class MathHelper {
       yIntercept: yIntercept,
       xConstant: Number.isNaN(lineGradient) ? line.x1 : NaN,
     };
+  }
+
+  static calculateLineIntersectPoint(
+    mirrorLineProps: LineProps,
+    playerStartPosition: Phaser.Math.Vector2
+  ): Phaser.Math.Vector2 {
+    // Edge case: Undefined mirror line gradient. Mirror line x value is constant
+    if (Number.isNaN(mirrorLineProps.gradient)) {
+      return new Phaser.Math.Vector2(
+        mirrorLineProps.xConstant,
+        playerStartPosition.y
+      );
+    }
+
+    // Edge case: line gradient = 0. Mirror line y value is constant
+    if (mirrorLineProps.gradient === 0) {
+      return new Phaser.Math.Vector2(
+        playerStartPosition.x,
+        mirrorLineProps.yIntercept
+      );
+    }
+
+    // Now proceed to regular method of using vectors to find reflected point
+    // Line perpendcular to mirror line is y = -(1/m)x + b.
+    //
+    // Get the value of b by substitiuting x and y with the player's position.
+    // b = y+(1/m)x
+    let perpendicularLineProps = MathHelper.findPerpendicularLineProps(
+      mirrorLineProps,
+      playerStartPosition
+    );
+
+    // Equate the the two lines and get the point where they intercept
+    return MathHelper.findLineIntersectPoint(
+      mirrorLineProps,
+      perpendicularLineProps
+    );
+  }
+
+  static calculateLineGradient(
+    point1: Phaser.Math.Vector2,
+    point2: Phaser.Math.Vector2
+  ) {
+    return point2.x - point1.x === 0
+      ? NaN
+      : (point2.y - point1.y) / (point2.x - point1.x);
   }
 
   static calculateYIntercept(
@@ -80,41 +144,5 @@ export default class MathHelper {
     // To get y, substitute x into one of the line equations.
     let y = line1.gradient * x + line1.yIntercept;
     return new Phaser.Math.Vector2(x, y);
-  }
-
-  static calculateLineIntersectPoint(
-    mirrorLineProps: LineProps,
-    playerStartPosition: Phaser.Math.Vector2
-  ): Phaser.Math.Vector2 {
-    // Edge case: Undefined mirror line gradient -> mirror line x value is constant
-    if (Number.isNaN(mirrorLineProps.gradient)) {
-      return new Phaser.Math.Vector2(
-        mirrorLineProps.xConstant,
-        playerStartPosition.y
-      );
-    }
-
-    // Edge case: line gradient = 0 -> mirror line y value is constant
-    if (mirrorLineProps.gradient === 0) {
-      return new Phaser.Math.Vector2(
-        playerStartPosition.x,
-        mirrorLineProps.yIntercept
-      );
-    }
-
-    // Now proceed to regular method of using vectors to find reflected point
-    // Line perpendcular to mirror line is y = -(1/m)x + b. Get the value of
-    // b by substitiuting x and y with the player's position. b = y+(1/m)x
-
-    let perpendicularLineProps = MathHelper.findPerpendicularLineProps(
-      mirrorLineProps,
-      playerStartPosition
-    );
-
-    // Equate the the two lines and get the point where they intercept
-    return MathHelper.findLineIntersectPoint(
-      mirrorLineProps,
-      perpendicularLineProps
-    );
   }
 }

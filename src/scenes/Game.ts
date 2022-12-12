@@ -1,9 +1,10 @@
 import Phaser from "phaser";
 import MathHelper from "../Helpers/MathHelper";
+import LineCanvas from "../Model/LineCanvas";
 
 export default class Demo extends Phaser.Scene {
   private _player!: Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody;
-  private _mirrorLineCanvas!: Phaser.GameObjects.Graphics;
+  private _mirrorLineCanvas!: LineCanvas;
   private _nextPlayerPosition!: Phaser.Math.Vector2;
   private _isNewReflectionAvailable!: boolean;
 
@@ -19,29 +20,22 @@ export default class Demo extends Phaser.Scene {
     this._player = this.physics.add.image(400, 300, "player");
     this._player.body.setCollideWorldBounds(true);
     this._isNewReflectionAvailable = false;
-
     this.input.mouse.disableContextMenu();
-
-    this.input.mouse.disableContextMenu();
-
-    this._mirrorLineCanvas = this.add.graphics();
-
-    this._mirrorLineCanvas.lineStyle(2, 0x00ff00);
-
-    //  The graphics instance you draw on
-
-    let graphics = this.add.graphics();
-
-    let line = new Phaser.Geom.Line();
+    this._mirrorLineCanvas = new LineCanvas(this);
 
     this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (pointer.leftButtonReleased()) {
+        if (!this._mirrorLineCanvas.lineWasDrawn()) {
+          this._mirrorLineCanvas.clear();
+          return;
+        }
+
         this.reflectPlayer(
-          line,
-          new Phaser.Math.Vector2(this._player.body.x, this._player.body.y)
+          this._mirrorLineCanvas.getDrawing(),
+          new Phaser.Math.Vector2(this._player.body.position)
         );
 
-        graphics.clear();
+        this._mirrorLineCanvas.clear();
       }
     });
 
@@ -54,28 +48,26 @@ export default class Demo extends Phaser.Scene {
         return;
       }
 
-      line.setTo(pointer.x, pointer.y, pointer.x, pointer.y);
+      this._mirrorLineCanvas.startDrawing(
+        new Phaser.Math.Vector2(pointer.x, pointer.y)
+      );
     });
 
     this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
       if (!pointer.isDown) {
-        graphics.clear();
         return;
       }
 
-      if (!pointer.leftButtonDown()) {
-        graphics.clear();
+      // Ensures that primary button is held down
+      // and is the most recently preseed button
+      // before continuing.
+      if (!pointer.primaryDown && pointer.button !== 0) {
         return;
       }
 
-      line.x2 = pointer.x;
-      line.y2 = pointer.y;
-
-      graphics.clear();
-
-      graphics.lineStyle(2, 0x00ff00);
-
-      graphics.strokeLineShape(line);
+      this._mirrorLineCanvas.drawTo(
+        new Phaser.Math.Vector2(pointer.x, pointer.y)
+      );
     });
   }
 
@@ -83,36 +75,11 @@ export default class Demo extends Phaser.Scene {
     line: Phaser.Geom.Line,
     playerStartPosition: Phaser.Math.Vector2
   ) {
-    // Get mirror line: y = mx + b
-    let mirrorLineProps = MathHelper.findLineProps(line);
-
-    let lineIntersectPoint = MathHelper.calculateLineIntersectPoint(
-      mirrorLineProps,
+    this._isNewReflectionAvailable = true;
+    this._nextPlayerPosition = MathHelper.reflectPointOverLine(
+      line,
       playerStartPosition
     );
-
-    // To get the reflection point, create a vector from the the player position
-    // to the intersect point then, add this vector to the player position 2 times.
-    //
-    /// The final result will be the reflected player position.
-    let playerPositionVector = new Phaser.Math.Vector2(
-      playerStartPosition.x,
-      playerStartPosition.y
-    );
-
-    let intersectPointVector = new Phaser.Math.Vector2(
-      lineIntersectPoint.x,
-      lineIntersectPoint.y
-    );
-    let shortestPlayerToMirrorLineVector =
-      intersectPointVector.subtract(playerPositionVector);
-
-    let reflectionPointVector = playerPositionVector.add(
-      shortestPlayerToMirrorLineVector.scale(2)
-    );
-
-    this._isNewReflectionAvailable = true;
-    this._nextPlayerPosition = new Phaser.Math.Vector2(reflectionPointVector);
   }
 
   update() {
@@ -122,5 +89,6 @@ export default class Demo extends Phaser.Scene {
 
     this._player.body.x = this._nextPlayerPosition.x;
     this._player.body.y = this._nextPlayerPosition.y;
+    this._isNewReflectionAvailable = false;
   }
 }
