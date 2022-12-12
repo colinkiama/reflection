@@ -14,14 +14,16 @@ export default class Demo extends Phaser.Scene {
 
   preload() {
     this.load.image("player", "assets/player.png");
+    this.load.image("enemy", "assets/enemy.png");
   }
 
   create() {
-    this._player = this.physics.add.image(400, 300, "player");
-    this._player.body.setCollideWorldBounds(true);
+    this._player = this.setupPlayer();
     this._isNewReflectionAvailable = false;
     this.input.mouse.disableContextMenu();
     this._mirrorLineCanvas = new LineCanvas(this);
+
+    let enemy = this.physics.add.image(500, 500, "enemy");
 
     this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (pointer.leftButtonReleased()) {
@@ -69,6 +71,11 @@ export default class Demo extends Phaser.Scene {
         new Phaser.Math.Vector2(pointer.x, pointer.y)
       );
     });
+  }
+  setupPlayer(): Phaser.Types.Physics.Arcade.GameObjectWithDynamicBody {
+    let player = this.physics.add.image(400, 300, "player");
+    player.body.setCollideWorldBounds(true);
+    return player;
   }
 
   reflectPlayer(
