@@ -25,7 +25,6 @@ export default class Demo extends Phaser.Scene {
     this.input.mouse.disableContextMenu();
 
     this._mirrorLineCanvas = this.add.graphics();
-
     this._mirrorLineCanvas.lineStyle(2, 0x00ff00);
 
     //  The graphics instance you draw on
@@ -36,6 +35,11 @@ export default class Demo extends Phaser.Scene {
 
     this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (pointer.leftButtonReleased()) {
+        if (line.getPointA().equals(line.getPointB())) {
+          graphics.clear();
+          return;
+        }
+
         this.reflectPlayer(
           line,
           new Phaser.Math.Vector2(this._player.body.position)
@@ -97,5 +101,6 @@ export default class Demo extends Phaser.Scene {
 
     this._player.body.x = this._nextPlayerPosition.x;
     this._player.body.y = this._nextPlayerPosition.y;
+    this._isNewReflectionAvailable = false;
   }
 }
